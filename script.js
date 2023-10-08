@@ -3,6 +3,8 @@ const itemInput = document.getElementById('item-input');
 const itemList = document.getElementById('item-list');
 const clearButton = document.getElementById('clear');
 const itemFilter = document.getElementById('filter');
+const formBtn = itemForm.querySelector('button');
+let isEditMode = false;
 
 function displayItems() {
   const itemsFromStorage = getItemsFromStorage();
@@ -17,6 +19,19 @@ const onAddItemSubmit = (e) => {
   if (newItem === '') {
     alert('Please add an item');
     return;
+  }
+  // Check for Edit Mode
+  if (isEditMode) {
+    const itemToEdit = itemList.querySelector('.edit-mode');
+    removeItemFromStorage(itemToEdit.textContent);
+    itemToEdit.classList.remove('edit-mode');
+    itemToEdit.remove();
+    isEditMode = false;
+  } else {
+    if (checkIfItemExists(newItem)) {
+      alert('That item already exists!');
+      return;
+    }
   }
   // Create item DOM Element
   addItemToDOM(newItem);
@@ -75,7 +90,34 @@ function getItemsFromStorage() {
 function onClickItem(e) {
   if (e.target.parentElement.classList.contains('remove-item')) {
     removeItem(e.target.parentElement.parentElement);
+  } else {
+    setItemToEdit(e.target);
   }
+}
+
+function checkIfItemExists(item) {
+  const itemsFromStorage = getItemsFromStorage();
+  // .includes can be used on an array to see if item is included
+  if (itemsFromStorage.includes(item)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function setItemToEdit(item) {
+  isEditMode = true;
+  itemList
+    .querySelectorAll('li')
+    .forEach((i) => i.classList.remove('edit-mode'));
+  // item.style.color = '#ccc';
+  item.classList.add('edit-mode');
+  formBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Update Item';
+  formBtn.style.backgroundColor = '#CAE6EE';
+  formBtn.style.color = 'red';
+  formBtn.style.fontWeight = 'bolder';
+  // Set value because its an input
+  itemInput.value = item.textContent;
 }
 
 function removeItem(item) {
@@ -123,6 +165,8 @@ function filterItems(e) {
 }
 
 function checkUI() {
+  // Clear input when UI is checked or reset
+  itemInput.value = '';
   //Needs to be inside function to check when list items are added
   const items = itemList.querySelectorAll('li');
   if (items.length === 0) {
@@ -132,6 +176,10 @@ function checkUI() {
     clearButton.style.display = 'block';
     itemFilter.style.display = 'block';
   }
+  formBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Item';
+  formBtn.style.backgroundColor = '#333';
+  formBtn.style.color = 'white';
+  isEditMode = false;
 }
 
 // Initialize app
